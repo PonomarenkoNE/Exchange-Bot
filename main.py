@@ -30,7 +30,7 @@ def list_of_currency(message):
         res = list()
         for el in data['rates']:
             rate = '{:.2f}'.format(float(data['rates'][el]))
-            res.append(f'{el}: {rate}')
+            res.append(str(el) + ':' + str(rate))
         model.create_db('\n'.join([str(elem) for elem in res]), datetime.now())
         bot.send_message(message.chat.id, '\n'.join([str(elem) for elem in res]))
         return
@@ -42,7 +42,7 @@ def list_of_currency(message):
         res = list()
         for el in data['rates']:
             rate = '{:.2f}'.format(float(data['rates'][el]))
-            res.append(f'{el}: {rate}')
+            res.append(str(el) + ':' + str(rate))
         model.update_db('\n'.join([str(elem) for elem in res]), datetime.now())
         print(2)
         bot.send_message(message.chat.id, '\n'.join([str(elem) for elem in res]))
@@ -62,7 +62,7 @@ def exchange(message):
     except Exception:
         bot.send_message(message.chat.id, 'Sorry, i dont understand')
         return
-    obj = requests.get(f'https://api.exchangeratesapi.io/latest?symbols={parsing[2]},{parsing[4]}').json()
+    obj = requests.get(f'https://api.exchangeratesapi.io/latest?symbols='+str(parsing[2])+','+str(parsing[4])).json()
     if 'error' in obj:
         bot.send_message(message.chat.id, 'Such currency dont exists')
         return
@@ -77,9 +77,9 @@ def history(message):
         bot.send_message(message.chat.id, 'Sorry, i dont understand')
         return
     cur_name = parsing[1][4:]
-    obj = requests.get(f'https://api.exchangeratesapi.io/history?start_at={str(datetime.now() - timedelta(days=9))[:10]}'
-                       f'&end_at={str(datetime.now())[:10]}'
-                       f'&base={parsing[1][:3]}&symbols={cur_name}').json()
+    obj = requests.get(f'https://api.exchangeratesapi.io/history?start_at='+str(datetime.now() - timedelta(days=9))[:10]
+                       + '&end_at='+str(datetime.now())[:10]
+                       + '&base='+str(parsing[1][:3])+'&symbols='+str(cur_name)).json()
     if 'error' in obj:
         bot.send_message(message.chat.id, 'Some trouble in given currency')
         return
@@ -92,7 +92,7 @@ def history(message):
     plt.xticks(x, dates)
     plt.xlabel('Dates')
     plt.ylabel('Rates')
-    plt.title(f'{parsing[1]}')
+    plt.title(str(parsing[1]))
     plt.plot(x, rates)
     plt.savefig('1.png')
     bot.send_photo(message.chat.id, photo=open('1.png', 'rb'))
