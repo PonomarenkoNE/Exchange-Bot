@@ -16,7 +16,9 @@ def start_bot(message):
                                       '\n\n\n/list - returns list of all available rates'
                                       '\n/exchange "num" "first_currency" to "second_currency" '
                                       '- converting "num" from "first_currency" to "second_currency"\n'
-                                      'Example: /exchange 10 USD to CAD')
+                                      'Example: /exchange 10 USD to CAD\n'
+                                      '/history "first currency"/"second currency" - showing graph of exchange rate in'
+                                      'last 7 days between "first currency" and "second currency"')
 
 
 @bot.message_handler(commands=['list'])
@@ -27,18 +29,22 @@ def list_of_currency(message):
         data = requests.get('https://api.exchangeratesapi.io/latest?base=USD').json()
         res = list()
         for el in data['rates']:
-            res.append(f'{el}: {"{:.2f}".format(float(data["rates"][el]))}')
+            rate = '{:.2f}'.format(float(data['rates'][el]))
+            res.append(f'{el}: {rate}')
         model.create_db('\n'.join([str(elem) for elem in res]), datetime.now())
         bot.send_message(message.chat.id, '\n'.join([str(elem) for elem in res]))
         return
-    if datetime.now() == obj.time - timedelta(minutes=10):
+    if obj.time > datetime.now() - timedelta(minutes=10):
         bot.send_message(message.chat.id, obj.data)
+        print(obj.time - timedelta(minutes=10))
     else:
         data = requests.get('https://api.exchangeratesapi.io/latest?base=USD').json()
         res = list()
         for el in data['rates']:
-            res.append(f'{el}: {"{:.2f}".format(float(data["rates"][el]))}')
+            rate = '{:.2f}'.format(float(data['rates'][el]))
+            res.append(f'{el}: {rate}')
         model.update_db('\n'.join([str(elem) for elem in res]), datetime.now())
+        print(2)
         bot.send_message(message.chat.id, '\n'.join([str(elem) for elem in res]))
 
 
@@ -46,39 +52,36 @@ def list_of_currency(message):
 def exchange(message):
     parsing = message.text.split(' ')
     if len(parsing) != 5:
-        bot.send_message(message.chat.id, "Sorry, i don't understand")
+        bot.send_message(message.chat.id, 'Sorry, i dont understand')
         return
     if parsing[3] != 'to':
-        bot.send_message(message.chat.id, "Sorry, i don't understand")
+        bot.send_message(message.chat.id, 'Sorry, i dont understand')
         return
     try:
         float(parsing[1])
     except Exception:
-        bot.send_message(message.chat.id, "Sorry, i don't understand")
+        bot.send_message(message.chat.id, 'Sorry, i dont understand')
         return
     obj = requests.get(f'https://api.exchangeratesapi.io/latest?symbols={parsing[2]},{parsing[4]}').json()
-    if "error" in obj:
-        bot.send_message(message.chat.id, "Such currency don't exists")
+    if 'error' in obj:
+        bot.send_message(message.chat.id, 'Such currency dont exists')
         return
     res = float(parsing[1]) * (float(obj['rates'][parsing[4]]) / float(obj['rates'][parsing[2]]))
-    bot.send_message(message.chat.id, str("{:.2f}".format(res)) + ' ' + parsing[4])
+    bot.send_message(message.chat.id, str('{:.2f}'.format(res)) + ' ' + parsing[4])
 
 
 @bot.message_handler(commands=['history'])
 def history(message):
     parsing = message.text.split(' ')
     if len(parsing) != 2:
-        bot.send_message(message.chat.id, "Sorry, i don't understand")
+        bot.send_message(message.chat.id, 'Sorry, i dont understand')
         return
     cur_name = parsing[1][4:]
     obj = requests.get(f'https://api.exchangeratesapi.io/history?start_at={str(datetime.now() - timedelta(days=9))[:10]}'
                        f'&end_at={str(datetime.now())[:10]}'
                        f'&base={parsing[1][:3]}&symbols={cur_name}').json()
-    print(f'https://api.exchangeratesapi.io/history?start_at={str(datetime.now() - timedelta(days=5))[:10]}'
-                       f'&end_at={str(datetime.now())[:10]}'
-                       f'&base={parsing[1][:3]}&symbols={cur_name}')
     if 'error' in obj:
-        bot.send_message(message.chat.id, "Some trouble in given currency")
+        bot.send_message(message.chat.id, 'Some trouble in given currency')
         return
     rates = list()
     dates = list()
