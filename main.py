@@ -62,7 +62,7 @@ def exchange(message):
     except Exception:
         bot.send_message(message.chat.id, 'Sorry, i dont understand')
         return
-    obj = requests.get(f'https://api.exchangeratesapi.io/latest?symbols='+str(parsing[2])+','+str(parsing[4])).json()
+    obj = requests.get('https://api.exchangeratesapi.io/latest?symbols='+str(parsing[2])+','+str(parsing[4])).json()
     if 'error' in obj:
         bot.send_message(message.chat.id, 'Such currency dont exists')
         return
@@ -77,7 +77,7 @@ def history(message):
         bot.send_message(message.chat.id, 'Sorry, i dont understand')
         return
     cur_name = parsing[1][4:]
-    obj = requests.get(f'https://api.exchangeratesapi.io/history?start_at='+str(datetime.now() - timedelta(days=9))[:10]
+    obj = requests.get('https://api.exchangeratesapi.io/history?start_at='+str(datetime.now() - timedelta(days=9))[:10]
                        + '&end_at='+str(datetime.now())[:10]
                        + '&base='+str(parsing[1][:3])+'&symbols='+str(cur_name)).json()
     if 'error' in obj:
